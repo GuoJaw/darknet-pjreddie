@@ -5,9 +5,8 @@
 	克隆代码：git clone https://github.com/GuoJaw/darknet-pjreddie
 
 ## Introduce： 
-	主要用于训练自己的数据集
-	批量测试图像，显示并保存
 	中文标签
+	批量测试图像，显示并保存
 	
 ## 测试视频
 	./darknet detector demo kitti/TestFile/kitti.data  kitti/TestFile/yolov3_kitti.cfg  kitti/TestFile/yolov3_kitti_final.weights -c 0 -thresh 0.3  test.avi
