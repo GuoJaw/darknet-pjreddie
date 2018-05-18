@@ -1,0 +1,11 @@
+
+
+classes= 3
+
+train  = /home/gjw/darknet-pjreddie/kitti/train.txt  
+valid  = /home/gjw/darknet-pjreddie/kitti/test.txt   
+
+names = /home/gjw/darknet-pjreddie/kitti/TestFile/kitti.names
+
+backup = /home/gjw/darknet-pjreddie/kitti/backup
+results = /home/gjw/darknet-pjreddie/kitti/kitti_result

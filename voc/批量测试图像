@@ -1,0 +1,5 @@
+（1）命令
+./darknet detector  test  voc/voc.data  voc/yolov3-voc.cfg  voc/yolov3-voc_final.weights -thresh 0.5
+
+（2）test.txt保存着待测试图像的绝对路径
+/home/gjw/darknet-master/data/2007_test.txt
