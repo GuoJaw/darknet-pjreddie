@@ -3,12 +3,16 @@
 
 
 # main程序头文件
+
+
 import os
 import sys
 import cv2
 import numpy as np
 import argparse
 import time  # fps
+
+sys.path.append("./python")  # 导入某个头文件下的.py
 from sort import Sort
 
 # darknet头文件
@@ -248,7 +252,6 @@ if __name__=="__main__":
             break
 
     cap.release()
-
 
 
 
