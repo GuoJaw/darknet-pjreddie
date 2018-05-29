@@ -7,7 +7,6 @@ import cv2
 import time
 from PIL import Image
 
-
 def sample(probs):
     s = sum(probs)
     probs = [a/s for a in probs]
@@ -36,7 +35,6 @@ class DETECTION(Structure):
                 ("objectness", c_float),
                 ("sort_class", c_int)]
 
-
 class IMAGE(Structure):
     _fields_ = [("w", c_int),
                 ("h", c_int),
@@ -47,17 +45,12 @@ class METADATA(Structure):
     _fields_ = [("classes", c_int),
                 ("names", POINTER(c_char_p))]
 
-
-
 #lib = CDLL("/home/pjreddie/documents/darknet/libdarknet.so", RTLD_GLOBAL)
 lib = CDLL("libdarknet.so", RTLD_GLOBAL)
 lib.network_width.argtypes = [c_void_p]
 lib.network_width.restype = c_int
 lib.network_height.argtypes = [c_void_p]
 lib.network_height.restype = c_int
-
-
-
 
 predict = lib.network_predict
 predict.argtypes = [c_void_p, POINTER(c_float)]
@@ -122,8 +115,6 @@ predict_image = lib.network_predict_image
 predict_image.argtypes = [c_void_p, IMAGE]
 predict_image.restype = POINTER(c_float)
 
-
-
 def classify(net, meta, im):
     out = predict_image(net, im)
     res = []
@@ -163,7 +154,6 @@ def detect(net, meta, imgdir, thresh=.5, hier_thresh=.5, nms=.45):
     free_detections(dets, num)
     return res
 
-
 if __name__ == "__main__":
     net = load_net("/home/gjw/darknet-pjreddie/kitti/TestFile/yolov3_kitti.cfg", "/home/gjw/darknet-pjreddie/kitti/TestFile/yolov3_kitti_final.weights", 0)
     meta = load_meta("/home/gjw/darknet-pjreddie/kitti/TestFile/kitti.data")
@@ -194,14 +184,7 @@ if __name__ == "__main__":
         c = cv2.waitKey(1)
         if (c == 27) or (0xFF == ord('q')):
             break
-    # release and close the display_window
     cap.release()
-
-
-
-
-
-
 
 
 
