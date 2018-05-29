@@ -1,5 +1,4 @@
-
-#coding=utf-8
+# coding=utf-8
 from ctypes import *
 import math
 import random
@@ -7,26 +6,30 @@ import cv2
 import time
 from PIL import Image
 
+
 def sample(probs):
     s = sum(probs)
-    probs = [a/s for a in probs]
+    probs = [a / s for a in probs]
     r = random.uniform(0, 1)
     for i in range(len(probs)):
         r = r - probs[i]
         if r <= 0:
             return i
-    return len(probs)-1
+    return len(probs) - 1
+
 
 def c_array(ctype, values):
-    arr = (ctype*len(values))()
+    arr = (ctype * len(values))()
     arr[:] = values
     return arr
+
 
 class BOX(Structure):
     _fields_ = [("x", c_float),
                 ("y", c_float),
                 ("w", c_float),
                 ("h", c_float)]
+
 
 class DETECTION(Structure):
     _fields_ = [("bbox", BOX),
@@ -36,18 +39,21 @@ class DETECTION(Structure):
                 ("objectness", c_float),
                 ("sort_class", c_int)]
 
+
 class IMAGE(Structure):
     _fields_ = [("w", c_int),
                 ("h", c_int),
                 ("c", c_int),
                 ("data", POINTER(c_float))]
 
+
 class METADATA(Structure):
     _fields_ = [("classes", c_int),
                 ("names", POINTER(c_char_p))]
 
-#lib = CDLL("/home/pjreddie/documents/darknet/libdarknet.so", RTLD_GLOBAL)
-lib = CDLL("libdarknet.so", RTLD_GLOBAL)
+
+# lib = CDLL("/home/pjreddie/documents/darknet/libdarknet.so", RTLD_GLOBAL)
+lib = CDLL("/home/gjw/darknet-pjreddie/libdarknet.so", RTLD_GLOBAL)
 lib.network_width.argtypes = [c_void_p]
 lib.network_width.restype = c_int
 lib.network_height.argtypes = [c_void_p]
@@ -116,6 +122,7 @@ predict_image = lib.network_predict_image
 predict_image.argtypes = [c_void_p, IMAGE]
 predict_image.restype = POINTER(c_float)
 
+
 def classify(net, meta, im):
     out = predict_image(net, im)
     res = []
@@ -123,6 +130,7 @@ def classify(net, meta, im):
         res.append((meta.names[i], out[i]))
     res = sorted(res, key=lambda x: -x[1])
     return res
+
 
 def video_detect(net, meta, frame, frame_tmp, thresh=.5, hier_thresh=.5, nms=.45):
     img_arr = Image.fromarray(frame)  # 将frame保存到本地frame_tmp
@@ -155,11 +163,13 @@ def video_detect(net, meta, frame, frame_tmp, thresh=.5, hier_thresh=.5, nms=.45
     free_detections(dets, num)
     return res
 
+
 if __name__ == "__main__":
-    net = load_net("/home/gjw/darknet-pjreddie/kitti/TestFile/yolov3_kitti.cfg", "/home/gjw/darknet-pjreddie/kitti/TestFile/yolov3_kitti_final.weights", 0)
+    net = load_net("/home/gjw/darknet-pjreddie/kitti/TestFile/yolov3_kitti.cfg",
+                   "/home/gjw/darknet-pjreddie/kitti/TestFile/yolov3_kitti_final.weights", 0)
     meta = load_meta("/home/gjw/darknet-pjreddie/kitti/TestFile/kitti.data")
     video_dir = '/home/gjw/darknet-pjreddie/kitti1.avi'
-    frame_tmp = "/home/gjw/darknet-pjreddie/kitti/video_tmp.jpg" # 暂时保存图像
+    frame_tmp = "/home/gjw/darknet-pjreddie/kitti/video_tmp.jpg"  # 暂时保存图像
 
     cap = cv2.VideoCapture(video_dir)
 
@@ -175,7 +185,6 @@ if __name__ == "__main__":
 
         res = video_detect(net, meta, frame, frame_tmp)  # frame获取的当前帧，frame_tmp临时存放图像的绝对路径
 
-
         cv2.imshow("result", frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
@@ -185,6 +194,4 @@ if __name__ == "__main__":
         print(fps)
 
     cap.release()
-    
-    
-    
+
