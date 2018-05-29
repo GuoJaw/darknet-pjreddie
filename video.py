@@ -16,6 +16,7 @@ def sample(probs):
         if r <= 0:
             return i
     return len(probs)-1
+
 def c_array(ctype, values):
     arr = (ctype*len(values))()
     arr[:] = values
@@ -123,13 +124,16 @@ def classify(net, meta, im):
     res = sorted(res, key=lambda x: -x[1])
     return res
 
-def detect(net, meta, imgdir, thresh=.5, hier_thresh=.5, nms=.45):
-    img = cv2.imread(imgdir)
-    im = load_image(imgdir, 0, 0)
+def video_detect(net, meta, frame, frame_tmp, thresh=.5, hier_thresh=.5, nms=.45):
+    img_arr = Image.fromarray(frame)  # 将frame保存到本地frame_tmp
+    img_goal = img_arr.save(frame_tmp)
+
+    im = load_image(frame_tmp, 0, 0)  # 从本地读取图像
 
     num = c_int(0)
     pnum = pointer(num)
     predict_image(net, im)
+
     dets = get_network_boxes(net, im.w, im.h, thresh, hier_thresh, None, 0, pnum)
 
     num = pnum[0]
@@ -140,16 +144,13 @@ def detect(net, meta, imgdir, thresh=.5, hier_thresh=.5, nms=.45):
         for i in range(meta.classes):
             if dets[j].prob[i] > 0:
                 b = dets[j].bbox
-                res.append((meta.names[i], dets[j].prob[i], (b.x, b.y, b.w, b.h)))
                 ltx = int(b.x - b.w / 2)
                 lty = int(b.y - b.h / 2)
                 rbx = int(b.x + b.w / 2)
                 rby = int(b.y + b.h / 2)
-                cv2.rectangle(img, (ltx, lty), (rbx, rby), (0, 255, 0), 2)
-    res = sorted(res, key=lambda x: -x[1])
+                cv2.rectangle(frame, (ltx, lty), (rbx, rby), (0, 255, 0), 2)
+                res.append([ltx, lty, rbx, rby, dets[j].prob[i]])  # 左上角 右下角 置信度
 
-    cv2.imshow("res",img)
-    #cv2.waitKey(0)
     free_image(im)
     free_detections(dets, num)
     return res
@@ -157,34 +158,33 @@ def detect(net, meta, imgdir, thresh=.5, hier_thresh=.5, nms=.45):
 if __name__ == "__main__":
     net = load_net("/home/gjw/darknet-pjreddie/kitti/TestFile/yolov3_kitti.cfg", "/home/gjw/darknet-pjreddie/kitti/TestFile/yolov3_kitti_final.weights", 0)
     meta = load_meta("/home/gjw/darknet-pjreddie/kitti/TestFile/kitti.data")
-
     video_dir = '/home/gjw/darknet-pjreddie/kitti1.avi'
     frame_tmp = "/home/gjw/darknet-pjreddie/kitti/video_tmp.jpg" # 暂时保存图像
+
     cap = cv2.VideoCapture(video_dir)
 
     count = 0
-    while (cap.isOpened()):
-        ret, frame = cap.read()
-        if ret == True:
-            count = count + 1
-        else:
+    while (1):
+
+        begin = time.time()  # 开始计时
+
+        r, frame = cap.read()
+        if r is False:
+            print("load video or capture error !")
             break
-        begin = time.time()
 
-        img_arr = Image.fromarray(frame)
-
-        img_goal = img_arr.save(frame_tmp)  # 保存
-        r = detect(net, meta, frame_tmp)
+        res = video_detect(net, meta, frame, frame_tmp)  # frame获取的当前帧，frame_tmp临时存放图像的绝对路径
 
 
-        # wait 1ms per iteration; press Esc to jump out the loop
+        cv2.imshow("result", frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
         end = time.time()
         fps = 1 / (end - begin)
         print(fps)
-        c = cv2.waitKey(1)
-        if (c == 27) or (0xFF == ord('q')):
-            break
+
     cap.release()
-
-
-
+    
+    
+    
